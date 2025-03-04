@@ -166,6 +166,20 @@ STORAGES = {
     },
 }
 
+if not DEBUG:
+    STORAGES["default"] = {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": os.environ.get("S3_ACCESS_KEY_ID"),
+            "secret_key": os.environ.get("S3_SECRET_ACCESS_KEY"),
+            "bucket_name": os.environ.get("S3_BUCKET_NAME"),
+            "endpoint_url": os.environ.get(
+                "S3_ENDPOINT_URL", "https://fsn1.your-objectstorage.com"
+            ),
+            "region_name": os.environ.get("S3_REGION_NAME", "fsn1"),
+            "querystring_auth": False,
+        },
+    }
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
