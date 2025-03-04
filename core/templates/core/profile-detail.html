@@ -20,20 +20,18 @@
                 <p class="text-sm">{% trans "Posts" %}</p>
             </div>
             <div>
-                <span class="text-lg font-bold">{{ user.followers.count }}</span>
+                <span class="text-lg font-bold">{{ user.followers.count|default:0 }}</span>
                 <p class="text-sm">{% trans "Followers" %}</p>
             </div>
             <div>
-                <span class="text-lg font-bold">{{ user.following.count }}</span>
+                <span class="text-lg font-bold">{{ user.following.count|default:0 }}</span>
                 <p class="text-sm">{% trans "Following" %}</p>
             </div>
         </div>
 
-        <div class="mt-8 p-8 grid grid-cols-auto sm:grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="mt-8 p-3 flex flex-wrap gap-4 justify-center">
             {% for post in user.content.all %}
-                <a href="{{ post.get_absolute_url }}">
-                    {% include 'core/includes/content-card.html' %}
-                </a>
+                {% include 'core/includes/content-card.html' with figure_class="h-44" card_class="w-[300px]" %}
             {% empty %}
                 <p class="col-span-3 text-center text-base-content">{% trans "No posts yet." %}</p>
             {% endfor %}

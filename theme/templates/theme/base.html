@@ -37,7 +37,7 @@
             <input id="drawer" type="checkbox" class="drawer-toggle"/>
             <div class="drawer-content flex flex-col h-screen">
                 {% include "core/includes/header.html" %}
-                <main class="h-full overflow-x-hidden relative">
+                <main class="h-full overflow-x-hidden relative p-6">
                     {% block content %}
                     {% endblock %}
                 </main>
@@ -51,12 +51,8 @@
                             <img src="{% static 'core/img/strvsocial-logo.png' %}" class="block w-32">
                         </a>
                     </li>
-                    <li>
-                        <a href="{% url 'home' %}">
-                            <i class="fas fa-house text-2xl"></i>
-                            {% trans "Home" %}
-                        </a>
-                    </li>
+                    {% include 'core/includes/menu-item.html' with url="home" icon="fas fa-house" title="Home" %}
+                    {% include 'core/includes/menu-item.html' with url="create-content-post" icon="fas fa-plus-square" title="Create" %}
                     {% if user.is_authenticated %}
                         <li>
                             <a href="{% url 'profile-detail' user.username %}">

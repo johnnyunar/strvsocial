@@ -1,6 +1,8 @@
 from django.contrib.auth import get_user_model
-from django.views.generic import TemplateView, DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import TemplateView, DetailView, FormView, CreateView
 
+from core.forms import ContentPostForm
 from core.models import ContentPost
 
 User = get_user_model()
@@ -29,3 +31,11 @@ class ContentPostDetailView(DetailView):
     slug_field = "uuid"
     slug_url_kwarg = "uuid"
     context_object_name = "post"
+
+
+class CreateContentPostView(LoginRequiredMixin, CreateView):
+    template_name = "core/create-content-post.html"
+    form_class = ContentPostForm
+
+    def get_success_url(self):
+        return self.object.get_absolute_url()

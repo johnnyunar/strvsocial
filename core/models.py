@@ -1,9 +1,11 @@
 import uuid
 
+import magic
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django_currentuser.db.models import CurrentUserField
 
 User = get_user_model()
 
@@ -41,7 +43,9 @@ class ContentPost(BaseModel):
         ("video", "Video"),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="content")
+    user = CurrentUserField(
+        related_name="content", on_delete=models.CASCADE, verbose_name=_("User")
+    )
     title = models.CharField(_("Title"), max_length=255)
     description = models.TextField(_("Description"), blank=True, null=True)
     text_content = models.TextField(_("Text Content"), blank=True, null=True)
@@ -56,7 +60,24 @@ class ContentPost(BaseModel):
     class Meta:
         verbose_name = _("Content")
         verbose_name_plural = _("Content")
+        ordering = ["-created_at"]
         get_latest_by = "updated_at"
+
+    def save(self, *args, **kwargs):
+        if self.media_file and not self.media_type:
+            mime = magic.Magic(mime=True)
+            mime_type = mime.from_buffer(self.media_file.read(2048))
+
+            if mime_type.startswith("image"):
+                self.media_type = "image" if "gif" not in mime_type else "gif"
+            elif mime_type.startswith("video"):
+                self.media_type = "video"
+            elif mime_type.startswith("audio"):
+                self.media_type = "audio"
+        elif self.text_content and not self.media_type:
+            self.media_type = "text"
+
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("content-post-detail", kwargs={"uuid": self.uuid})

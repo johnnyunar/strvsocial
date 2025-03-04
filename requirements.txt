@@ -6,8 +6,11 @@ chardet==5.2.0
 charset-normalizer==3.4.1
 click==8.1.8
 cookiecutter==2.6.0
+crispy-daisyui==0.7.0
 Django==5.1.6
 django-cleanup==9.0.0
+django-crispy-forms==2.3
+django-currentuser==0.8.0
 django-database-url==1.0.3
 django-redis==5.4.0
 django-storages==1.14.5
@@ -23,6 +26,7 @@ pillow==11.1.0
 psycopg2==2.9.10
 Pygments==2.19.1
 python-dateutil==2.9.0.post0
+python-magic==0.4.27
 python-slugify==8.0.4
 PyYAML==6.0.2
 redis==5.2.1

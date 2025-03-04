@@ -41,7 +41,28 @@ module.exports = {
          */
         // '../../**/*.py'
     ],
-   theme: {
+    safelist: [
+        "mb-3",
+        "block",
+        "text-sm",
+        "font-bold",
+        "mb-1",
+        "textinput",
+        "focus:ring",
+        "input-bordered",
+        "focus:outline-none",
+        "input",
+        "w-full",
+        "textarea",
+        "textarea-bordered",
+        "clearablefileinput",
+        "file-input",
+        "file-input-bordered",
+        "btn",
+        "btn-neutral",
+        "mt-4",
+    ],
+    theme: {
         extend: {
             fontFamily: {
                 sans: ['InterVariable', 'sans-serif'],

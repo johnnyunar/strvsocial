@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     # 3rd party apps
     "tailwind",
     "widget_tweaks",
+    "crispy_forms",
+    "crispy_daisyui",
     # Django Cleanup - this should stay last
     "django_cleanup.apps.CleanupConfig",
 ]
@@ -68,6 +70,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_currentuser.middleware.ThreadLocalUserMiddleware",
 ]
 
 ROOT_URLCONF = "strvsocial.urls"
@@ -195,3 +198,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # TailwindCSS settings
 TAILWIND_APP_NAME = "theme"
+
+# Crispy Forms settings
+CRISPY_ALLOWED_TEMPLATE_PACKS = "daisyui"
+CRISPY_TEMPLATE_PACK = "daisyui"
