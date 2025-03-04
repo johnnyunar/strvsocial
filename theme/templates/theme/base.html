@@ -37,7 +37,7 @@
             <input id="my-drawer-2" type="checkbox" class="drawer-toggle"/>
             <div class="drawer-content flex flex-col h-screen">
                 {% include "core/includes/header.html" %}
-                <main class="h-full overflow-hidden relative">
+                <main class="h-full overflow-x-hidden relative">
                     {% block content %}
                     {% endblock %}
                 </main>
@@ -52,7 +52,12 @@
                         </a>
                     </li>
                     {% if user.is_authenticated %}
-                        <li><a>{% trans "Profile" %}</a></li>
+                        <li>
+                            <a>
+                                <img class="size-7 rounded-box" src="{{ user.get_avatar_url }}"/>
+                                {% trans "Profile" %}
+                            </a>
+                        </li>
                     {% else %}
                         <li><a href="{% url 'login' %}" class="btn btn-primary w-full">{% trans "Login" %}</a></li>
                     {% endif %}

@@ -52,5 +52,10 @@ class Content(BaseModel):
     )
     embedding = models.JSONField(_("Embedding"), blank=True, null=True)
 
+    class Meta:
+        verbose_name = _("Content")
+        verbose_name_plural = _("Content")
+        get_latest_by = "updated_at"
+
     def __str__(self) -> str:
         return f"{self.title} ({self.media_type})"

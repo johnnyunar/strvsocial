@@ -1,0 +1,13 @@
+<li class="list-row">
+    <div>
+        <img class="size-10 rounded-box"
+             src="{{ user.get_avatar_url }}"/>
+    </div>
+    <div>
+        <div><b>{{ user.username }}</b></div>
+        <div class="text-xs uppercase font-semibold opacity-60">{{ user.get_last_update }}</div>
+    </div>
+    <p class="list-col-wrap text-xs">
+        {{ user.bio }}
+    </p>
+</li>
