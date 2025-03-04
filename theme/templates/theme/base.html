@@ -26,6 +26,9 @@
         <meta property="twitter:description"
               content="Data 410 | a digital footprint management platform.">
         <meta property="twitter:image" content="{% static 'core/img/strvsocial-logo.png' %}">
+
+        <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+
         {% tailwind_css %}
     </head>
 
@@ -37,7 +40,6 @@
                 <main class="h-full overflow-hidden relative">
                     {% block content %}
                     {% endblock %}
-                    <div id="floating-squares" class="absolute bottom-0 w-full pointer-events-none"></div>
                 </main>
             </div>
             <div class="drawer-side">
@@ -49,7 +51,11 @@
                             <img src="{% static 'core/img/strvsocial-logo.png' %}" class="block w-32">
                         </a>
                     </li>
-                    <li><a>{% trans "My Profile" %}</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a>{% trans "Profile" %}</a></li>
+                    {% else %}
+                        <li><a href="{% url 'login' %}" class="btn btn-primary w-full">{% trans "Login" %}</a></li>
+                    {% endif %}
                 </ul>
             </div>
         </div>

@@ -30,6 +30,10 @@ AUTH_USER_MODEL = "users.SocialUser"
 
 SITE_ID = 1
 
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/"
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -50,6 +54,7 @@ INSTALLED_APPS = [
     "core",
     # 3rd party apps
     "tailwind",
+    "widget_tweaks",
     # Django Cleanup - this should stay last
     "django_cleanup.apps.CleanupConfig",
 ]

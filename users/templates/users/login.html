@@ -1,0 +1,36 @@
+{% extends "theme/base.html" %}
+{% load static i18n widget_tweaks %}
+
+{% block title %}{% trans "Login" %}{% endblock %}
+
+{% block content %}
+    <div class="flex justify-center items-center h-full">
+        <form method="post" class="w-80 bg-base-200 border border-base-300 p-6 rounded-box shadow-lg z-10">
+            {% csrf_token %}
+            <fieldset class="fieldset w-xs bg-base-200 border border-base-300 p-4 rounded-box">
+                <legend class="fieldset-legend">{% trans "Login" %}</legend>
+
+                <div class="form-control">
+                    {{ form.username.label_tag }}
+                    {{ form.username|add_class:"input input-bordered w-full"|attr:"placeholder:janedoe@example.com" }}
+                </div>
+
+                <div class="form-control mt-4">
+                    {{ form.password.label_tag }}
+                    {{ form.password|add_class:"input input-bordered w-full"|attr:"placeholder:p4ssw0rd!" }}
+                </div>
+
+                <button type="submit" class="btn btn-neutral mt-4 w-full">{% trans "Login" %}</button>
+            </fieldset>
+        </form>
+    </div>
+    <div class="absolute -bottom-24 md:-bottom-32 w-full z-0">
+        <lottie-player
+          src="{% static 'core/lotties/planets.json' %}"
+          class="w-full max-w-[750px] mx-auto"
+          background="transparent"
+          speed="1"
+          loop
+          autoplay></lottie-player>
+    </div>
+{% endblock %}
