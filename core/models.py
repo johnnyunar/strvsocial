@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 User = get_user_model()
@@ -56,6 +57,9 @@ class ContentPost(BaseModel):
         verbose_name = _("Content")
         verbose_name_plural = _("Content")
         get_latest_by = "updated_at"
+
+    def get_absolute_url(self):
+        return reverse("content-post-detail", kwargs={"uuid": self.uuid})
 
     def __str__(self) -> str:
         return f"{self.title} ({self.media_type})"

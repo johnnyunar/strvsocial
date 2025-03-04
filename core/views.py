@@ -22,7 +22,10 @@ class ProfileDetailView(DetailView):
     slug_field = "username"
     slug_url_kwarg = "username"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["content"] = ContentPost.objects.all()
-        return context
+
+class ContentPostDetailView(DetailView):
+    model = ContentPost
+    template_name = "core/content-post-detail.html"
+    slug_field = "uuid"
+    slug_url_kwarg = "uuid"
+    context_object_name = "post"

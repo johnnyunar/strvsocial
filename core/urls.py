@@ -17,9 +17,10 @@ Including another URLconf
 
 from django.urls import path
 
-from core.views import HomeView, ProfileDetailView
+from core.views import HomeView, ProfileDetailView, ContentPostDetailView
 
 urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("u/<str:username>/", ProfileDetailView.as_view(), name="profile-detail"),
+    path("p/<uuid:uuid>/", ContentPostDetailView.as_view(), name="content-post-detail"),
 ]

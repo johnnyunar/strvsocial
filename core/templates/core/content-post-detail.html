@@ -1,0 +1,43 @@
+{% extends "theme/base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+    <div class="max-w-2xl mx-auto p-6 bg-base-200 border border-base-300 rounded-box shadow-lg">
+        <div class="flex items-center gap-4 mb-4">
+            <img src="{{ post.user.get_avatar_url }}" class="w-12 h-12 rounded-full"
+                 alt="{{ post.user.username }}">
+            <div>
+                <h2 class="text-lg font-semibold">{{ post.user.username }}</h2>
+                <p class="text-sm text-gray-500">{{ post.created_at|date:"DATE_FORMAT" }}</p>
+            </div>
+        </div>
+
+        <h1 class="text-2xl font-bold">{{ post.title }}</h1>
+        <p class="mt-2">{{ post.description }}</p>
+
+        {% if post.media_type == "image" or post.media_type == "gif" %}
+            <img src="{{ post.media_file.url }}" class="w-full mt-4 rounded-lg" alt="{{ post.title }}">
+        {% elif post.media_type == "video" %}
+            <video controls class="w-full mt-4 rounded-lg">
+                <source src="{{ post.media_file.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        {% elif post.media_type == "audio" %}
+            <audio controls class="w-full mt-4">
+                <source src="{{ post.media_file.url }}" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        {% elif post.media_type == "text" %}
+            <div class="mt-4 p-4 bg-base-300 rounded-lg">
+                <p class="text-gray-700">{{ post.text_content }}</p>
+            </div>
+        {% endif %}
+
+        <div class="mt-6 flex justify-between text-sm text-gray-500">
+            <p>{% trans "Last updated" %}: {{ post.updated_at|date:"DATETIME_FORMAT" }}</p>
+        </div>
+    </div>
+{% endblock %}
