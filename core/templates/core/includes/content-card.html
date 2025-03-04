@@ -1,20 +1,20 @@
 <div class="card bg-base-200 w-full max-w-[500px] shadow-sm mb-14">
     <figure>
         <img
-          src="{{ item.media_file.url }}"
-          alt="Shoes"/>
+          src="{{ post.media_file.url }}"
+          alt="Media Content"/>
     </figure>
     <div class="card-body">
         <h2 class="card-title mb-4">
             <img class="size-7 rounded-box" src="{{ user.get_avatar_url }}"/>
-            {{ item.user.username }}
+            {{ post.user.username }}
         </h2>
         <h2 class="card-title">
-            {{ item.title }}
+            {{ post.title }}
         </h2>
-        <p>{{ item.description }}</p>
+        <p>{{ post.description }}</p>
         <div class="card-actions justify-end">
-            <div class="badge badge-outline">{{ item.media_type|capfirst }}</div>
+            <div class="badge badge-outline">{{ post.media_type|capfirst }}</div>
         </div>
     </div>
 </div>

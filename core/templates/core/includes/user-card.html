@@ -1,3 +1,5 @@
+{% load i18n %}
+
 <li class="list-row">
     <div>
         <img class="size-10 rounded-box"
@@ -5,7 +7,9 @@
     </div>
     <div>
         <div><b>{{ user.username }}</b></div>
-        <div class="text-xs uppercase font-semibold opacity-60">{{ user.get_last_update }}</div>
+        <div class="text-xs uppercase font-semibold opacity-60">
+            {% trans "Last Update" %} {{ user.get_last_update | date:"DATE_FORMAT" }}
+        </div>
     </div>
     <p class="list-col-wrap text-xs">
         {{ user.bio }}

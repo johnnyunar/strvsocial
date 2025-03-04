@@ -53,7 +53,7 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li>
-                            <a>
+                            <a href="{% url 'profile-detail' user.username %}">
                                 <img class="size-7 rounded-box" src="{{ user.get_avatar_url }}"/>
                                 {% trans "Profile" %}
                             </a>

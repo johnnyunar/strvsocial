@@ -1,0 +1,10 @@
+{% load i18n %}
+
+<div class="w-full max-w-[500px]">
+    <ul class="list bg-base-100 rounded-box shadow-md">
+        <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{% trans "Suggested for you" %}</li>
+        {% for user in users %}
+            {% include 'core/includes/user-card.html' %}
+        {% endfor %}
+    </ul>
+</div>

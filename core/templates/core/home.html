@@ -5,22 +5,7 @@
 
 {% block content %}
     <div class="flex justify-around p-12 flex-wrap-reverse gap-y-10">
-        <div>
-            {% for item in content %}
-                {% include 'core/includes/content-card.html' %}
-                {% include 'core/includes/content-card.html' %}
-                {% include 'core/includes/content-card.html' %}
-            {% endfor %}
-        </div>
-        <div class="w-full max-w-[500px]">
-            <ul class="list bg-base-100 rounded-box shadow-md">
-
-                <li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{% trans "Suggested for you" %}</li>
-
-                {% for user in users %}
-                    {% include 'core/includes/user-card.html' %}
-                {% endfor %}
-            </ul>
-        </div>
+        {% include "core/includes/content-feed.html" %}
+        {% include "core/includes/suggested-list.html" %}
     </div>
 {% endblock %}

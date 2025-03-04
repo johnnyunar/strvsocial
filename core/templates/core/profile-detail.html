@@ -1,0 +1,42 @@
+{% extends "theme/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ user.username }}{% endblock %}
+
+{% block content %}
+    <div class="max-w-3xl mx-auto py-8">
+        <div class="flex items-center gap-6">
+            <img src="{{ user.get_avatar_url }}" alt="{{ user.username }}"
+                 class="w-24 h-24 rounded-full border border-base-300 shadow">
+            <div>
+                <h1 class="text-xl font-semibold">{{ user.username }}</h1>
+                <p class="text-base-content">{{ user.profile.bio }}</p>
+            </div>
+        </div>
+
+        <div class="flex justify-around mt-6 text-center">
+            <div>
+                <span class="text-lg font-bold">{{ user.content.count }}</span>
+                <p class="text-sm">{% trans "Posts" %}</p>
+            </div>
+            <div>
+                <span class="text-lg font-bold">{{ user.followers.count }}</span>
+                <p class="text-sm">{% trans "Followers" %}</p>
+            </div>
+            <div>
+                <span class="text-lg font-bold">{{ user.following.count }}</span>
+                <p class="text-sm">{% trans "Following" %}</p>
+            </div>
+        </div>
+
+        <div class="mt-8 p-8 grid grid-cols-auto sm:grid-cols-1 md:grid-cols-3 gap-4">
+            {% for post in user.content.all %}
+                <a href="{{ post.get_absolute_url }}">
+                    {% include 'core/includes/content-card.html' %}
+                </a>
+            {% empty %}
+                <p class="col-span-3 text-center text-base-content">{% trans "No posts yet." %}</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
