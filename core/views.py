@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.views.generic import TemplateView, DetailView
 
-from core.models import Content
+from core.models import ContentPost
 
 User = get_user_model()
 
@@ -11,7 +11,7 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["content"] = Content.objects.all()
+        context["content"] = ContentPost.objects.all()
         context["users"] = User.objects.all()
         return context
 
@@ -24,5 +24,5 @@ class ProfileDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["content"] = Content.objects.all()
+        context["content"] = ContentPost.objects.all()
         return context

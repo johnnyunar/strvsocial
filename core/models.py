@@ -18,7 +18,7 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class Content(BaseModel):
+class ContentPost(BaseModel):
     """
     Model representing a content item in the social network.
 
