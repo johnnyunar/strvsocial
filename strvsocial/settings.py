@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     "core",
     # 3rd party apps
     "tailwind",
+    # Django Cleanup - this should stay last
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 MIDDLEWARE = [
