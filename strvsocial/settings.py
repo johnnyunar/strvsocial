@@ -26,11 +26,17 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+AUTH_USER_MODEL = "users.SocialUser"
+
+SITE_ID = 1
+
 # Application definition
 
 INSTALLED_APPS = [
     # Local whitenoise
     "whitenoise.runserver_nostatic",
+    # Unfold
+    "unfold",
     # Django Apps
     "django.contrib.admin",
     "django.contrib.auth",
@@ -40,6 +46,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Local Apps
     "theme",
+    "users",
     "core",
     # 3rd party apps
     "tailwind",
