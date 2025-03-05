@@ -1,35 +1,23 @@
-import shutil
-import tempfile
-from contextlib import contextmanager
 from datetime import timedelta
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.management import call_command
 from django.templatetags.static import static
 from django.test import Client
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django_htmx.http import HttpResponseClientRedirect
 
 from core.models import ContentPost
+from core.tests import BaseTestCase
 
 User = get_user_model()
 
-class SocialUserModelTests(TestCase):
+class SocialUserModelTests(BaseTestCase):
     def setUp(self) -> None:
         self.user = User.objects.create_user(
             email="test@example.com", username="testuser", password="password"
         )
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        call_command("collectstatic", "--noinput")
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(settings.STATIC_ROOT)
 
     def test_str_returns_email(self) -> None:
         """Ensure __str__ returns the user's email."""
