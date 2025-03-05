@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from django_currentuser.db.models import CurrentUserField
 
 from core.utils import generate_random_filename
+from core.validators import validate_media_file
 
 User = get_user_model()
 
@@ -56,7 +57,11 @@ class ContentPost(BaseModel):
         _("Media Type"), max_length=10, choices=MEDIA_TYPE_CHOICES
     )
     media_file = models.FileField(
-        _("Media File"), upload_to=partial(generate_random_filename, subdir="content"), blank=True, null=True
+        _("Media File"),
+        upload_to=partial(generate_random_filename, subdir="content"),
+        blank=True,
+        null=True,
+        validators=[validate_media_file],
     )
     embedding = models.JSONField(_("Embedding"), blank=True, null=True)
 
@@ -88,7 +93,9 @@ class ContentPost(BaseModel):
     def __str__(self) -> str:
         return f"{self.title} ({self.media_type})"
 
-    def get_similar_posts(self, index: "faiss.Index", id_list: list[int], query_user_id: int, k: int = 5) -> list["ContentPost"]:
+    def get_similar_posts(
+        self, index: "faiss.Index", id_list: list[int], query_user_id: int, k: int = 5
+    ) -> list["ContentPost"]:
         from core.index import get_similar_for_post
 
         return get_similar_for_post(
