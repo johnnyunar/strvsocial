@@ -104,5 +104,5 @@ class ContentPost(BaseModel):
             id_list=id_list,
             query_user_id=query_user_id,
             k=k,
-            threshold=500.0,
+            threshold=400.0,
         )
