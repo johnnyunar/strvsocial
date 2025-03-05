@@ -1,4 +1,5 @@
 import uuid
+from functools import partial
 
 import magic
 from django.contrib.auth import get_user_model
@@ -6,6 +7,8 @@ from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django_currentuser.db.models import CurrentUserField
+
+from core.utils import generate_random_filename
 
 User = get_user_model()
 
@@ -53,7 +56,7 @@ class ContentPost(BaseModel):
         _("Media Type"), max_length=10, choices=MEDIA_TYPE_CHOICES
     )
     media_file = models.FileField(
-        _("Media File"), upload_to="uploads/", blank=True, null=True
+        _("Media File"), upload_to=partial(generate_random_filename, subdir="content"), blank=True, null=True
     )
     embedding = models.JSONField(_("Embedding"), blank=True, null=True)
 
