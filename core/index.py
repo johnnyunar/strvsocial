@@ -92,10 +92,11 @@ def get_similar_for_post(
     query_user_id: int,
     k: int = 5,
     search_multiplier: int = 2,
+    threshold: float | None = None,
 ) -> List[ContentPost]:
     """
-    Find similar ContentPost IDs for a given query embedding,
-    filtering out posts from the same user.
+    Find similar ContentPost instances for a given query embedding,
+    filtering out posts from the same user and optionally applying a distance threshold.
 
     Args:
         query_embedding: The embedding vector of the query post.
@@ -104,21 +105,35 @@ def get_similar_for_post(
         query_user_id: ID of the user who owns the query post.
         k: Number of similar posts to return.
         search_multiplier: Multiplier to fetch extra candidates for filtering.
+        threshold: Optional distance threshold. Only candidates with a distance
+                   less than or equal to this value will be returned.
 
     Returns:
-        A list of ContentPost IDs from other users that are similar.
+        A list of ContentPost instances from other users that are similar,
+        possibly fewer than k if candidates don't meet the threshold.
     """
     search_k = k * search_multiplier
     query_vec = np.array([query_embedding]).astype("float32")
     distances, indices = index.search(query_vec, search_k)
-    similar_ids: List[ContentPost] = []
+    similar_posts: List[ContentPost] = []
 
-    for idx in indices[0]:
-        if idx < len(id_list):
-            candidate_id = id_list[idx]
-            candidate_post = ContentPost.objects.get(id=candidate_id)
-            if candidate_post.user_id != query_user_id:
-                similar_ids.append(candidate_post)
-            if len(similar_ids) == k:
-                break
-    return similar_ids
+    for dist, idx in zip(distances[0], indices[0]):
+        if idx >= len(id_list):
+            continue
+
+        candidate_id = id_list[idx]
+        candidate_post = ContentPost.objects.get(id=candidate_id)
+
+        # Skip posts from the same user.
+        if candidate_post.user_id == query_user_id:
+            continue
+
+        # If a threshold is set, stop processing if the candidate is too far.
+        if threshold is not None and dist > threshold:
+            break
+
+        similar_posts.append(candidate_post)
+        if len(similar_posts) == k:
+            break
+
+    return similar_posts
