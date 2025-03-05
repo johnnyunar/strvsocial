@@ -1,5 +1,6 @@
 import logging
 import os
+import tempfile
 from typing import List, Optional
 
 import numpy as np
@@ -46,11 +47,9 @@ def compute_text_embedding(text: str) -> List[float]:
     """
     init_text_model()
     inputs = text_tokenizer(text, return_tensors="pt", truncation=True, padding=True)
-    # Move inputs to the same device as the model.
     inputs = {k: v.to(device) for k, v in inputs.items()}
     with torch.no_grad():
         outputs = text_model(**inputs)
-    # Mean pooling over token embeddings.
     embedding = outputs.last_hidden_state.mean(dim=1).squeeze().cpu().numpy()
     return embedding.tolist()
 
@@ -72,28 +71,28 @@ def init_image_model() -> None:
                 transforms.Resize((224, 224)),
                 transforms.ToTensor(),
                 transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]
                 ),
             ]
         )
 
 
-def compute_image_embedding(image_path: str) -> List[float]:
+def compute_image_embedding_from_file(file_obj) -> List[float]:
     """
-    Compute an image embedding using a pre-trained CNN.
+    Compute an image embedding using a pre-trained CNN from a file-like object.
 
     Args:
-        image_path: Path to the image file.
+        file_obj: A file-like object for the image.
 
     Returns:
         A list of floats representing the image embedding.
     """
     init_image_model()
-    image = Image.open(image_path).convert("RGB")
+    image = Image.open(file_obj).convert("RGB")
     image_tensor = image_transform(image).unsqueeze(0).to(device)
     with torch.no_grad():
         embedding = image_model(image_tensor).squeeze().cpu().numpy()
-    # Flatten the embedding in case it is multi-dimensional.
     return embedding.flatten().tolist()
 
 
@@ -113,7 +112,6 @@ def compute_audio_embedding(audio_path: str) -> List[float]:
     try:
         y, sr = librosa.load(audio_path, sr=22050)
         mel_spec = librosa.feature.melspectrogram(y=y, sr=sr)
-        # Average over the time dimension to obtain a fixed-size vector.
         embedding = np.mean(mel_spec, axis=1)
         return embedding.tolist()
     except Exception:
@@ -124,6 +122,7 @@ def compute_audio_embedding(audio_path: str) -> List[float]:
 class Command(BaseCommand):
     """
     Management command to generate embeddings for ContentPost items that lack an embedding.
+    This version works with django-storages and S3 by opening files via the storage API.
     """
 
     help = "Generate embeddings for ContentPost items without an existing embedding."
@@ -153,50 +152,42 @@ class Command(BaseCommand):
             embedding: List[float] = []
 
             if content.media_type == "text" and content.text_content:
-                self.stdout.write(
-                    f"Computing text embedding for ContentPost {content.id}..."
-                )
+                self.stdout.write(f"Computing text embedding for ContentPost {content.id}...")
                 embedding = compute_text_embedding(content.text_content)
+
             elif content.media_type in ("image", "gif") and content.media_file:
-                file_path: str = content.media_file.path
-                if os.path.exists(file_path):
-                    self.stdout.write(
-                        f"Computing image embedding for ContentPost {content.id}..."
-                    )
-                    embedding = compute_image_embedding(file_path)
-                else:
-                    self.stdout.write(
-                        f"File not found for ContentPost {content.id}: {file_path}"
-                    )
+                try:
+                    with content.media_file.open("rb") as file_obj:
+                        self.stdout.write(f"Computing image embedding for ContentPost {content.id}...")
+                        embedding = compute_image_embedding_from_file(file_obj)
+                except Exception as e:
+                    self.stdout.write(f"Error processing image for ContentPost {content.id}: {e}")
+
             elif content.media_type == "audio" and content.media_file:
-                file_path = content.media_file.path
-                if os.path.exists(file_path):
-                    self.stdout.write(
-                        f"Computing audio embedding for ContentPost {content.id}..."
-                    )
-                    embedding = compute_audio_embedding(file_path)
-                else:
-                    self.stdout.write(
-                        f"File not found for ContentPost {content.id}: {file_path}"
-                    )
+                tmp_file_path: Optional[str] = None
+                try:
+                    with content.media_file.open("rb") as file_obj:
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
+                            tmp_file.write(file_obj.read())
+                            tmp_file_path = tmp_file.name
+                    self.stdout.write(f"Computing audio embedding for ContentPost {content.id}...")
+                    embedding = compute_audio_embedding(tmp_file_path)
+                except Exception as e:
+                    self.stdout.write(f"Error processing audio for ContentPost {content.id}: {e}")
+                finally:
+                    if tmp_file_path and os.path.exists(tmp_file_path):
+                        os.remove(tmp_file_path)
+
             elif content.media_type == "video":
-                self.stdout.write(
-                    f"Skipping video embedding for ContentPost {content.id} (not implemented)."
-                )
+                self.stdout.write(f"Skipping video embedding for ContentPost {content.id} (not implemented).")
                 continue
             else:
-                self.stdout.write(
-                    f"Insufficient data to compute embedding for ContentPost {content.id}."
-                )
+                self.stdout.write(f"Insufficient data to compute embedding for ContentPost {content.id}.")
                 continue
 
             if embedding:
                 content.embedding = embedding
                 content.save(update_fields=["embedding"])
-                self.stdout.write(
-                    f"Embedding computed and saved for ContentPost {content.id}."
-                )
+                self.stdout.write(f"Embedding computed and saved for ContentPost {content.id}.")
             else:
-                self.stdout.write(
-                    f"Failed to compute embedding for ContentPost {content.id}."
-                )
+                self.stdout.write(f"Failed to compute embedding for ContentPost {content.id}.")

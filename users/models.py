@@ -5,6 +5,7 @@ from django.db import models
 from django.templatetags.static import static
 
 from core.utils import generate_random_filename
+from users.manager import SocialUserManager
 
 
 class SocialUser(AbstractUser):
@@ -15,6 +16,7 @@ class SocialUser(AbstractUser):
         blank=True,
         null=True,
     )
+    objects = SocialUserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username"]

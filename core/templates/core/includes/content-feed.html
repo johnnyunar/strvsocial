@@ -7,11 +7,11 @@
     </div>
     {% if suggested_content %}
         {% for other_post_id, data in suggested_content.items %}
-            {% include 'core/includes/content-card.html' with post=data.post similar=data.active_posts %}
+            {% include 'core/includes/content-card.html' with post=data.post similar=data.active_posts profile=data.post.user %}
         {% endfor %}
     {% else %}
         {% for post in content %}
-            {% include 'core/includes/content-card.html' %}
+            {% include 'core/includes/content-card.html' with profile=post.user %}
         {% endfor %}
     {% endif %}
 </div>

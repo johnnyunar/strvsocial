@@ -61,9 +61,14 @@
                             </a>
                         </li>
                     {% else %}
-                        <li><a href="{% url 'login' %}" class="btn btn-primary w-full">{% trans "Login" %}</a></li>
+                        {% include 'core/includes/menu-item.html' with url="login" icon="fas fa-right-to-bracket" title="Login" %}
                     {% endif %}
                 </ul>
+                {% if user.is_authenticated %}
+                    <div class="absolute w-full h-12 bottom-0 bg-base-200 flex justify-center items-center">
+                        <a hx-post="{% url 'logout' %}" class="btn btn-ghost">{% trans "Log out" %}</a>
+                    </div>
+                {% endif %}
             </div>
         </div>
         <script src="{% static 'core/js/vendor/htmx.min.js' %}"></script>

@@ -1,5 +1,6 @@
 import logging
-from typing import Dict, List, Tuple, Any
+from datetime import timedelta
+from typing import Dict, List, Any
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -7,7 +8,6 @@ from django.views.generic import TemplateView, DetailView, CreateView
 
 from core.forms import ContentPostForm
 from core.index import (
-    get_similar_for_post,
     build_faiss_indexes_by_media,
 )
 from core.models import ContentPost
@@ -27,14 +27,13 @@ class HomeView(TemplateView):
         and, for each of them, listing the active user's posts that are similar.
         """
         context: dict = super().get_context_data(**kwargs)
-        context["users"] = User.objects.all()
 
         # This dict maps each active user's post ID to the list of similar posts (from other users)
         active_to_similar: Dict[int, List[ContentPost]] = {}
 
         if self.request.user.is_authenticated:
             # Build separate FAISS indexes for each media type
-            faiss_indexes = build_faiss_indexes_by_media()
+            faiss_indexes = build_faiss_indexes_by_media(force_rebuild=True)
 
             # Get active user's posts that have embeddings
             active_user_posts = ContentPost.objects.filter(
@@ -46,8 +45,7 @@ class HomeView(TemplateView):
                 # Process only if there's an index for this media type
                 if media_type in faiss_indexes:
                     index, id_list = faiss_indexes[media_type]
-                    similar_posts = get_similar_for_post(
-                        query_embedding=active_post.embedding,
+                    similar_posts = active_post.get_similar_posts(
                         index=index,
                         id_list=id_list,
                         query_user_id=self.request.user.id,
@@ -83,8 +81,10 @@ class HomeView(TemplateView):
                     content__in=suggested_content.keys()
                 ).distinct()
                 context["users"] = similar_users
-            else:
-                context["content"] = ContentPost.objects.all()
+                return context
+
+        context["content"] = ContentPost.objects.all()
+        context["users"] = User.objects.get_most_active(limit=5, time_delta=timedelta(days=30))
 
         return context
 
@@ -94,6 +94,7 @@ class ProfileDetailView(DetailView):
     template_name = "core/profile-detail.html"
     slug_field = "username"
     slug_url_kwarg = "username"
+    context_object_name = "profile"
 
 
 class ContentPostDetailView(DetailView):

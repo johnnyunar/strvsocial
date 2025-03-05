@@ -27,8 +27,8 @@
         </figure>
         <div class="card-body">
             <h2 class="card-title mb-4">
-                <img class="size-7 rounded-box" src="{{ user.get_avatar_url }}"/>
-                {{ post.user.username }}
+                <img class="size-7 rounded-box" src="{{ profile.get_avatar_url }}"/>
+                {{ profile.username }}
             </h2>
             <h2 class="card-title">
                 {{ post.title }}
@@ -53,7 +53,6 @@
                             {% endif %}
                         </div>
                     </div>
-
                 {% endif %}
             </div>
         </div>

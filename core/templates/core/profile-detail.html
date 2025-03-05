@@ -1,36 +1,36 @@
 {% extends "theme/base.html" %}
 {% load i18n %}
 
-{% block title %}{{ user.username }}{% endblock %}
+{% block title %}{{ profile.username }}{% endblock %}
 
 {% block content %}
     <div class="max-w-3xl mx-auto p-8">
         <div class="flex items-center gap-6">
-            <img src="{{ user.get_avatar_url }}" alt="{{ user.username }}"
+            <img src="{{ profile.get_avatar_url }}" alt="{{ profile.username }}"
                  class="w-24 h-24 rounded-full border border-base-300 shadow">
             <div>
-                <h1 class="text-xl font-semibold">{{ user.username }}</h1>
-                <p class="mt-4 text-sm">{{ user.bio }}</p>
+                <h1 class="text-xl font-semibold">{{ profile.username }}</h1>
+                <p class="mt-4 text-sm">{{ profile.bio }}</p>
             </div>
         </div>
 
         <div class="flex justify-around mt-6 text-center">
             <div>
-                <span class="text-lg font-bold">{{ user.content.count }}</span>
+                <span class="text-lg font-bold">{{ profile.content.count }}</span>
                 <p class="text-sm">{% trans "Posts" %}</p>
             </div>
             <div>
-                <span class="text-lg font-bold">{{ user.followers.count|default:0 }}</span>
+                <span class="text-lg font-bold">{{ profile.followers.count|default:0 }}</span>
                 <p class="text-sm">{% trans "Followers" %}</p>
             </div>
             <div>
-                <span class="text-lg font-bold">{{ user.following.count|default:0 }}</span>
+                <span class="text-lg font-bold">{{ profile.following.count|default:0 }}</span>
                 <p class="text-sm">{% trans "Following" %}</p>
             </div>
         </div>
 
         <div class="mt-8 p-3 flex flex-wrap gap-4 justify-center">
-            {% for post in user.content.all %}
+            {% for post in profile.content.all %}
                 {% include 'core/includes/content-card.html' with figure_class="h-44" card_class="!w-[300px]" %}
             {% empty %}
                 <p class="col-span-3 text-center text-base-content">{% trans "No posts yet." %}</p>
