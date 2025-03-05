@@ -84,3 +84,14 @@ class ContentPost(BaseModel):
 
     def __str__(self) -> str:
         return f"{self.title} ({self.media_type})"
+
+    def get_similar_posts(self):
+        from core.index import get_similar_for_post
+
+        return get_similar_for_post(
+            query_embedding=self.embedding,
+            index=self.index,
+            id_list=self.id_list,
+            query_user_id=self.user.id,
+            k=5,
+        )

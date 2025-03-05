@@ -1,5 +1,17 @@
+{% load i18n %}
+
 <div>
-    {% for post in content %}
-        {% include 'core/includes/content-card.html' %}
-    {% endfor %}
+    <div class="flex flex-col w-full p-3 justify-center items-center">
+        <span class="mb-2 text-xs opacity-60">{% trans "Filter" %}</span>
+        {% include 'core/includes/filter.html' %}
+    </div>
+    {% if suggested_content %}
+        {% for other_post_id, data in suggested_content.items %}
+            {% include 'core/includes/content-card.html' with post=data.post similar=data.active_posts %}
+        {% endfor %}
+    {% else %}
+        {% for post in content %}
+            {% include 'core/includes/content-card.html' %}
+        {% endfor %}
+    {% endif %}
 </div>

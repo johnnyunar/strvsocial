@@ -31,7 +31,7 @@
 
         <div class="mt-8 p-3 flex flex-wrap gap-4 justify-center">
             {% for post in user.content.all %}
-                {% include 'core/includes/content-card.html' with figure_class="h-44" card_class="w-[300px]" %}
+                {% include 'core/includes/content-card.html' with figure_class="h-44" card_class="!w-[300px]" %}
             {% empty %}
                 <p class="col-span-3 text-center text-base-content">{% trans "No posts yet." %}</p>
             {% endfor %}
