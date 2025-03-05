@@ -15,6 +15,14 @@ CACHE_KEY = "faiss_indexes_by_media"
 def get_faiss_indexes_from_cache(
     cache_key: str = CACHE_KEY,
 ) -> Dict[str, Tuple[faiss.IndexFlatL2, List[int]]] | None:
+    """
+    Get FAISS indexes from cache.
+
+    :param cache_key: The key to use for the cache lookup.
+    :return: A dictionary mapping media types to a tuple containing:
+        - A FAISS IndexFlatL2 object built from embeddings of that media type.
+        - A list mapping each index position to a ContentPost ID.
+    """
     cached = cache.get(cache_key)
     if cached:
         # Rebuild the indexes from the serialized data in cache.
