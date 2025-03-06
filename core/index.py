@@ -65,8 +65,8 @@ def build_faiss_indexes_by_media(
         media_types = ["text", "image", "gif", "audio"]
 
     if not force_rebuild:
-        if cached_indexes := get_faiss_indexes_from_cache(media_types):
-            return cached_indexes
+        if existing_indexes := get_faiss_indexes_from_cache(media_types):
+            return existing_indexes
 
     # Build the indexes if not found in cache.
     indexes: Dict[str, Tuple[faiss.IndexFlatL2, List[int]]] = {}
@@ -92,61 +92,73 @@ def build_faiss_indexes_by_media(
             cache.set(
                 f"{CACHE_KEY_PREFIX}{media_type}",
                 (serialized_index, id_list),
-                timeout=3600,
             )
 
     return indexes
 
 
 def get_similar_for_post(
-    query_embedding: List[float],
-    index: faiss.IndexFlatL2,
-    id_list: List[int],
-    query_user_id: int,
-    k: int = 5,
-    search_multiplier: int = 2,
-    threshold: float | None = None,
+        query_embedding: List[float],
+        index: faiss.IndexFlatL2,
+        id_list: List[int],
+        query_user_id: int,
+        k: int = 5,
+        search_multiplier: int = 2,
+        threshold: float | None = None,
 ) -> List[ContentPost]:
     """
-    Find similar ContentPost instances for a given query embedding,
-    filtering out posts from the same user and optionally applying a distance threshold.
+    Retrieve similar ContentPost instances for a given query embedding,
+    filtering out posts from the same user and applying an optional threshold.
+
+    This implementation leverages NumPy for vectorized filtering and performs
+    a single batch database query to retrieve candidate posts.
 
     Args:
         query_embedding: The embedding vector of the query post.
-        index: The FAISS index corresponding to the media type.
-        id_list: List mapping FAISS index positions to ContentPost IDs.
-        query_user_id: ID of the user who owns the query post.
-        k: Number of similar posts to return.
-        search_multiplier: Multiplier to fetch extra candidates for filtering.
-        threshold: Optional distance threshold. Only candidates with a distance
-                   less than or equal to this value will be returned.
+        index: The FAISS index for the corresponding media type.
+        id_list: Mapping from FAISS index positions to ContentPost IDs.
+        query_user_id: The user ID of the querying post.
+        k: Maximum number of similar posts to return.
+        search_multiplier: Overfetch factor to account for filtering.
+        threshold: Optional maximum L2 distance; only candidates with a distance
+                   <= threshold are considered.
 
     Returns:
         A list of ContentPost instances from other users that are similar,
-        possibly fewer than k if candidates don't meet the threshold.
+        possibly fewer than k if candidates don’t meet the threshold.
     """
+    # Overfetch to allow for filtering
     search_k = k * search_multiplier
     query_vec = np.array([query_embedding]).astype("float32")
     distances, indices = index.search(query_vec, search_k)
-    similar_posts: List[ContentPost] = []
 
-    for dist, idx in zip(distances[0], indices[0]):
-        if idx >= len(id_list):
-            continue
+    # Create a boolean mask for candidates under the threshold.
+    # If threshold is None, accept all candidates.
+    mask = np.ones_like(distances[0], dtype=bool) if threshold is None else (distances[0] <= threshold)
 
-        candidate_id = id_list[idx]
-        candidate_post = ContentPost.objects.get(id=candidate_id)
+    # Get valid indices according to the mask.
+    valid_positions = np.where(mask)[0]
+    if valid_positions.size == 0:
+        return []
 
-        # Skip posts from the same user.
-        if candidate_post.user.id == query_user_id:
-            continue
+    # Retrieve candidate IDs in the order they were returned.
+    candidate_ids = [id_list[int(idx)] for idx in indices[0][valid_positions] if idx < len(id_list)]
 
-        # If a threshold is set, stop processing if the candidate is too far.
-        if threshold is not None and dist > threshold:
-            break
+    # Exclude candidates from the same user in one batch query.
+    candidate_posts = list(
+        ContentPost.objects.filter(id__in=candidate_ids).exclude(user__id=query_user_id)
+    )
 
-        similar_posts.append(candidate_post)
-        if len(similar_posts) == k:
-            break
+    # Create a mapping from candidate_id to distance for sorting.
+    distance_map = {}
+    for pos in valid_positions:
+        idx = int(indices[0][pos])
+        if idx < len(id_list):
+            candidate_id = id_list[idx]
+            distance_map[candidate_id] = float(distances[0][pos])
 
-    return similar_posts
+    # Sort candidates by distance.
+    candidate_posts.sort(key=lambda post: distance_map.get(post.id, float("inf")))
+
+    return candidate_posts[:k]
+
