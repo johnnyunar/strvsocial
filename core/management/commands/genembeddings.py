@@ -91,7 +91,7 @@ class EmbeddingProcessor:
             logger.exception("Error computing audio embedding.", exc_info=True)
             return []
 
-    def transcribe_audio(audio_path: str) -> str:
+    def transcribe_audio(self, audio_path: str) -> str:
         """
         Transcribe the audio at the given path using faster-whisper.
 
@@ -102,9 +102,8 @@ class EmbeddingProcessor:
             The transcribed text, or an empty string if transcription fails.
         """
         try:
-            # Use the "base" model variant. Adjust the model name and beam size as needed.
             device = "cuda" if torch.cuda.is_available() else "cpu"
-            model = WhisperModel("base", device=device, compute_type="float16")
+            model = WhisperModel("base", device=device, compute_type="float32")
             segments, info = model.transcribe(
                 audio_path, beam_size=5, word_timestamps=False
             )
