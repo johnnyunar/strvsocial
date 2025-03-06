@@ -4,15 +4,16 @@ import subprocess
 import tempfile
 from typing import List, Optional, BinaryIO
 
+import librosa
 import numpy as np
 import torch
-import librosa
-import whisper
-from PIL import Image
-from django.core.management.base import BaseCommand
 import torchvision.models as models
 import torchvision.transforms as transforms
+from PIL import Image
+from django.core.management.base import BaseCommand
+from faster_whisper import WhisperModel
 from transformers import AutoTokenizer, AutoModel
+
 from core.models import ContentPost
 
 logger = logging.getLogger(__name__)
@@ -90,13 +91,29 @@ class EmbeddingProcessor:
             logger.exception("Error computing audio embedding.", exc_info=True)
             return []
 
-    def transcribe_audio(self, audio_path: str) -> str:
+    def transcribe_audio(audio_path: str) -> str:
+        """
+        Transcribe the audio at the given path using faster-whisper.
+
+        Args:
+            audio_path: Path to the audio file.
+
+        Returns:
+            The transcribed text, or an empty string if transcription fails.
+        """
         try:
-            model = whisper.load_model("base")
-            result = model.transcribe(audio_path)
-            return result.get("text", "").strip()
+            # Use the "base" model variant. Adjust the model name and beam size as needed.
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            model = WhisperModel("base", device=device, compute_type="float16")
+            segments, info = model.transcribe(
+                audio_path, beam_size=5, word_timestamps=False
+            )
+            transcript = " ".join(segment.text for segment in segments)
+            return transcript.strip()
         except Exception:
-            logger.exception("Error transcribing audio with Whisper.", exc_info=True)
+            logger.exception(
+                "Error transcribing audio with faster-whisper.", exc_info=True
+            )
             return ""
 
     def process_text(self, content: ContentPost) -> List[float]:
