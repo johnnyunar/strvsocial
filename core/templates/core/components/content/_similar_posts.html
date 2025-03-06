@@ -1,0 +1,14 @@
+{% load i18n %}
+
+
+{% for similar_post in similar_posts %}
+    {% if forloop.last %}
+        <div hx-get="{% url 'get-similar-posts' post.uuid %}?page={{ page }}"
+             hx-trigger="intersect once"
+             hx-swap="afterend">
+            {% include 'core/includes/content-card.html' with figure_class="h-44" card_class="!w-[300px] h-[400px]" post=similar_post profile=similar_post.user %}
+        </div>
+    {% else %}
+        {% include 'core/includes/content-card.html' with figure_class="h-44" card_class="!w-[300px] h-[400px]" post=similar_post profile=similar_post.user %}
+    {% endif %}
+{% endfor %}

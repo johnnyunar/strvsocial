@@ -94,9 +94,22 @@ class ContentPost(BaseModel):
         return f"{self.title} ({self.media_type})"
 
     def get_similar_posts(
-        self, index: "faiss.Index", id_list: list[int], query_user_id: int, k: int = 5
+        self,
+        index: "faiss.Index" = None,
+        id_list: list[int] = None,
+        query_user_id: int = None,
+        k: int = 5,
     ) -> list["ContentPost"]:
-        from core.index import get_similar_for_post
+        from core.index import get_similar_for_post, build_faiss_indexes_by_media
+
+        if not index or not id_list:
+            faiss_indexes = build_faiss_indexes_by_media(
+                force_rebuild=True, media_types=[self.media_type]
+            )
+            index, id_list = faiss_indexes[self.media_type]
+
+        if not query_user_id:
+            query_user_id = self.user.id
 
         return get_similar_for_post(
             query_embedding=self.embedding,
@@ -104,5 +117,5 @@ class ContentPost(BaseModel):
             id_list=id_list,
             query_user_id=query_user_id,
             k=k,
-            threshold=400.0,
+            threshold=500.0,
         )

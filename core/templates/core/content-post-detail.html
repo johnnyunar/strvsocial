@@ -40,4 +40,9 @@
             <p>{% trans "Last updated" %}: {{ post.updated_at|date:"DATETIME_FORMAT" }}</p>
         </div>
     </div>
+
+    <h2 class="text-center mt-8">{% trans "Similar content" %}</h2>
+    <div class="mt-8 p-3 flex flex-wrap gap-4 justify-center">
+        {% include 'core/components/content/_similar_posts.html' %}
+    </div>
 {% endblock %}

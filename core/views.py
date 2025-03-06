@@ -13,6 +13,8 @@ from core.models import ContentPost
 logger = logging.getLogger(__name__)
 User = get_user_model()
 
+PAGE_SIZE = 5
+
 
 class HomeView(TemplateView):
     template_name = "core/home.html"
@@ -34,7 +36,9 @@ class HomeView(TemplateView):
                 return context
 
         context["content"] = ContentPost.objects.all()
-        context["users"] = User.objects.get_most_active(limit=5, time_delta=timedelta(days=30))
+        context["users"] = User.objects.get_most_active(
+            limit=5, time_delta=timedelta(days=30)
+        )
         return context
 
     def _build_suggested_content(self) -> Dict[int, Dict[str, Any]]:
@@ -100,7 +104,10 @@ class HomeView(TemplateView):
                     if active_post not in inverted[other_post.id]["active_posts"]:
                         inverted[other_post.id]["active_posts"].append(active_post)
                 else:
-                    inverted[other_post.id] = {"post": other_post, "active_posts": [active_post]}
+                    inverted[other_post.id] = {
+                        "post": other_post,
+                        "active_posts": [active_post],
+                    }
         return inverted
 
     def _get_similar_users(self, suggested: Dict[int, Dict[str, Any]]) -> List[User]:
@@ -132,6 +139,12 @@ class ContentPostDetailView(DetailView):
     slug_url_kwarg = "uuid"
     context_object_name = "post"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post = self.object
+        context["similar_posts"] = post.get_similar_posts(k=PAGE_SIZE)
+        return context
+
 
 class CreateContentPostView(LoginRequiredMixin, CreateView):
     template_name = "core/create-content-post.html"
@@ -139,3 +152,20 @@ class CreateContentPostView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self) -> str:
         return self.object.get_absolute_url()
+
+
+class GetSimilarPostsHtmxView(TemplateView):
+    template_name = "core/components/content/_similar_posts.html"
+
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        post_uuid = self.kwargs.get("uuid")
+        page = self.request.GET.get("page") or 1
+        page = int(page)
+        if post_uuid:
+            post = ContentPost.objects.get(uuid=post_uuid)
+            similar_posts = post.get_similar_posts(
+                k=100,
+            )
+            similar_posts = similar_posts[page * PAGE_SIZE : (page + 1) * PAGE_SIZE]
+            return {"similar_posts": similar_posts, "page": page + 1, "post": post}
+        return {}

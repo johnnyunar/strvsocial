@@ -22,6 +22,7 @@ from core.views import (
     ProfileDetailView,
     ContentPostDetailView,
     CreateContentPostView,
+    GetSimilarPostsHtmxView,
 )
 
 urlpatterns = [
@@ -29,4 +30,9 @@ urlpatterns = [
     path("u/<str:username>/", ProfileDetailView.as_view(), name="profile-detail"),
     path("p/<uuid:uuid>/", ContentPostDetailView.as_view(), name="content-post-detail"),
     path("p/create/", CreateContentPostView.as_view(), name="create-content-post"),
+    path(
+        "p/<uuid:uuid>/similar-posts/",
+        GetSimilarPostsHtmxView.as_view(),
+        name="get-similar-posts",
+    ),
 ]
