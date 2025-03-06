@@ -8,8 +8,11 @@ def generate_random_string(length: int = 16):
     """
     Generate a random string of fixed length using alphanumeric characters.
 
-    :param length: length of the generated string
-    :return: random string of given length
+    Args:
+        length: length of the generated string
+
+    Returns: random string of given length
+
     """
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
@@ -24,10 +27,13 @@ def generate_random_filename(instance, filename: str, subdir: str = "other") -> 
         upload_to=partial(generate_random_filename, subdir="avatars")
     )
 
-    :param instance: instance of the corresponding model
-    :param filename: name of the file to be uploaded
-    :param subdir: subdirectory to store the file
-    :return: generated path for the file
+    Args:
+        instance: instance of the corresponding model
+        filename: name of the file to be uploaded
+        subdir: subdirectory to store the file
+
+    Returns: enerated path for the file
+
     """
     ext: str = pathlib.Path(filename).suffix
     random_name = f"{generate_random_string()}{ext}"

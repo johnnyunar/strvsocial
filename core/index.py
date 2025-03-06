@@ -17,15 +17,20 @@ def get_faiss_indexes_from_cache(
     media_types=None,
 ) -> Dict[str, Tuple[faiss.IndexFlatL2, List[int]]] | None:
     """
-    Get FAISS indexes from cache.
+    Retrieve FAISS indexes from the cache.
 
-    :param cache_key: The key to use for the cache lookup.
-    :return: A dictionary mapping media types to a tuple containing:
+    Args:
+        cache_key: The key to use for the cache lookup.
+        media_types: List of media types to retrieve indexes for. Default is ["text", "image", "video", "gif", "audio"].
+
+    Returns: A dictionary mapping media types to a tuple containing:
         - A FAISS IndexFlatL2 object built from embeddings of that media type.
         - A list mapping each index position to a ContentPost ID.
+
     """
+
     if media_types is None:
-        media_types = ["text", "image", "gif", "audio"]
+        media_types = ["text", "image", "video", "gif", "audio"]
 
     all_indexes = {}
     for media_type in media_types:
