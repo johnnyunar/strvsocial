@@ -1,17 +1,19 @@
 {% load i18n %}
 
-<li class="list-row">
-    <div>
-        <img class="size-10 rounded-box"
-             src="{{ user.get_avatar_url }}"/>
-    </div>
-    <div>
-        <div><b>{{ user.username }}</b></div>
-        <div class="text-xs uppercase font-semibold opacity-60">
-            {% trans "Last Update" %} {{ user.get_last_update | date:"DATE_FORMAT" }}
+<li>
+    <a href="{{ user.get_absolute_url }}" class="list-row hover:bg-base-200 transition-colors">
+        <div>
+            <img class="size-10 rounded-box"
+                 src="{{ user.get_avatar_url }}"/>
         </div>
-    </div>
-    <p class="list-col-wrap text-xs">
-        {{ user.bio }}
-    </p>
+        <div>
+            <div><b>{{ user.username }}</b></div>
+            <div class="text-xs uppercase font-semibold opacity-60">
+                {% trans "Last Update" %} {{ user.get_last_update | date:"DATE_FORMAT" }}
+            </div>
+        </div>
+        <p class="list-col-wrap text-xs">
+            {{ user.bio }}
+        </p>
+    </a>
 </li>

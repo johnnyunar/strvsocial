@@ -3,6 +3,7 @@ from functools import partial
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.templatetags.static import static
+from django.urls import reverse
 
 from core.utils import generate_random_filename
 from users.manager import SocialUserManager
@@ -38,3 +39,6 @@ class SocialUser(AbstractUser):
             return self.avatar.url
 
         return static("core/img/user.webp")
+
+    def get_absolute_url(self):
+        return reverse("profile-detail", kwargs={"username": self.username})
