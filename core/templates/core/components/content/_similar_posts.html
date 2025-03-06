@@ -1,6 +1,3 @@
-{% load i18n %}
-
-
 {% for similar_post in similar_posts %}
     {% if forloop.last %}
         <div hx-get="{% url 'get-similar-posts' post.uuid %}?page={{ page }}"
