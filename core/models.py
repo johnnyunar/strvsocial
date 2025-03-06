@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django_currentuser.db.models import CurrentUserField
 
+from core.const import SIMILARITY_THRESHOLDS
 from core.utils import generate_random_filename
 from core.validators import validate_media_file
 
@@ -117,5 +118,5 @@ class ContentPost(BaseModel):
             id_list=id_list,
             query_user_id=query_user_id,
             k=k,
-            threshold=500.0,
+            threshold=SIMILARITY_THRESHOLDS.get(self.media_type, 500.0),
         )

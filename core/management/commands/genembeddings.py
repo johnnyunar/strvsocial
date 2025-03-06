@@ -67,14 +67,16 @@ def init_image_model() -> None:
         image_model = torch.nn.Sequential(*modules)
         image_model.to(device)
         image_model.eval()
-        image_transform = transforms.Compose([
-            transforms.Resize((224, 224)),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225],
-            ),
-        ])
+        image_transform = transforms.Compose(
+            [
+                transforms.Resize((224, 224)),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225],
+                ),
+            ]
+        )
 
 
 def compute_image_embedding_from_file(file_obj) -> List[float]:
@@ -125,6 +127,7 @@ class Command(BaseCommand):
     This command supports remote storage backends (e.g., S3 via django-storages)
     by opening files via the storage API.
     """
+
     help = "Generate embeddings for ContentPost items without an existing embedding."
 
     def add_arguments(self, parser) -> None:
@@ -151,11 +154,15 @@ class Command(BaseCommand):
             if embedding:
                 content.embedding = embedding
                 content.save(update_fields=["embedding"])
-                self.stdout.write(f"Embedding computed and saved for ContentPost {content.id}.")
+                self.stdout.write(
+                    f"Embedding computed and saved for ContentPost {content.id}."
+                )
             else:
-                self.stdout.write(f"Failed to compute embedding for ContentPost {content.id}.")
+                self.stdout.write(
+                    f"Failed to compute embedding for ContentPost {content.id}."
+                )
 
-    def _get_queryset(self, content_id: Optional[int]) -> 'QuerySet[ContentPost]':
+    def _get_queryset(self, content_id: Optional[int]) -> "QuerySet[ContentPost]":
         """
         Retrieve ContentPost queryset filtered by content_id if provided,
         or all posts missing embeddings otherwise.
@@ -172,29 +179,39 @@ class Command(BaseCommand):
             The computed embedding as a list of floats, or an empty list if processing fails.
         """
         if content.media_type == "text" and content.text_content:
-            self.stdout.write(f"Computing text embedding for ContentPost {content.id}...")
+            self.stdout.write(
+                f"Computing text embedding for ContentPost {content.id}..."
+            )
             return compute_text_embedding(content.text_content)
 
         if content.media_type in ("image", "gif") and content.media_file:
             try:
                 with content.media_file.open("rb") as file_obj:
-                    self.stdout.write(f"Computing image embedding for ContentPost {content.id}...")
+                    self.stdout.write(
+                        f"Computing image embedding for ContentPost {content.id}..."
+                    )
                     return compute_image_embedding_from_file(file_obj)
             except Exception as e:
-                self.stdout.write(f"Error processing image for ContentPost {content.id}: {e}")
+                self.stdout.write(
+                    f"Error processing image for ContentPost {content.id}: {e}"
+                )
                 return []
 
         if content.media_type == "audio" and content.media_file:
             return self._process_audio(content)
 
         if content.media_type == "video":
-            self.stdout.write(f"Skipping video embedding for ContentPost {content.id} (not implemented).")
+            self.stdout.write(
+                f"Skipping video embedding for ContentPost {content.id} (not implemented)."
+            )
             return []
 
-        self.stdout.write(f"Insufficient data to compute embedding for ContentPost {content.id}.")
+        self.stdout.write(
+            f"Insufficient data to compute embedding for ContentPost {content.id}."
+        )
         return []
 
-    def _process_audio(self, content: ContentPost) -> List[float]:
+    def _process_audio(self, content: ContentPost) -> List[float] | None:
         """
         Process an audio ContentPost instance by downloading the file to a temporary location.
 
@@ -204,13 +221,19 @@ class Command(BaseCommand):
         tmp_file_path: Optional[str] = None
         try:
             with content.media_file.open("rb") as file_obj:
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmp_file:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=".mp3"
+                ) as tmp_file:
                     tmp_file.write(file_obj.read())
                     tmp_file_path = tmp_file.name
-            self.stdout.write(f"Computing audio embedding for ContentPost {content.id}...")
+            self.stdout.write(
+                f"Computing audio embedding for ContentPost {content.id}..."
+            )
             return compute_audio_embedding(tmp_file_path)
         except Exception as e:
-            self.stdout.write(f"Error processing audio for ContentPost {content.id}: {e}")
+            self.stdout.write(
+                f"Error processing audio for ContentPost {content.id}: {e}"
+            )
             return []
         finally:
             if tmp_file_path and os.path.exists(tmp_file_path):
