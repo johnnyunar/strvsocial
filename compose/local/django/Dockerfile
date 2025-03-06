@@ -16,6 +16,8 @@ RUN apt-get update \
   && apt-get install -y git ssh \
   # libmagic1 is python-magic's dependency
   && apt-get install -y libmagic1 \
+  # ffmpeg is required for video processing
+  && apt-get install -y ffmpeg \
   # nodejs
   && apt-get -yq install curl gnupg ca-certificates \
   && curl -L https://deb.nodesource.com/setup_$NODE_MAJOR.x | bash \

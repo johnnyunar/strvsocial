@@ -1,12 +1,13 @@
 from django.core.exceptions import ValidationError
 import magic
 
+
 def validate_media_file(file):
     """Validate that a media file is not larger than 10MB and is an allowed type."""
     # Check file size
-    max_size = 10 * 1024 * 1024  # 10MB
+    max_size = 30 * 1024 * 1024  # 30MB
     if file.size > max_size:
-        raise ValidationError("File size should not exceed 10MB.")
+        raise ValidationError("File size should not exceed 30MB.")
 
     # Read a sample of the file for MIME detection.
     file.seek(0)

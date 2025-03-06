@@ -62,7 +62,7 @@ def build_faiss_indexes_by_media(
           - A list mapping each index position to a ContentPost ID.
     """
     if media_types is None:
-        media_types = ["text", "image", "gif", "audio"]
+        media_types = ["text", "image", "video", "gif", "audio"]
 
     if not force_rebuild:
         if existing_indexes := get_faiss_indexes_from_cache(media_types):
@@ -98,13 +98,13 @@ def build_faiss_indexes_by_media(
 
 
 def get_similar_for_post(
-        query_embedding: List[float],
-        index: faiss.IndexFlatL2,
-        id_list: List[int],
-        query_user_id: int,
-        k: int = 5,
-        search_multiplier: int = 2,
-        threshold: float | None = None,
+    query_embedding: List[float],
+    index: faiss.IndexFlatL2,
+    id_list: List[int],
+    query_user_id: int,
+    k: int = 5,
+    search_multiplier: int = 2,
+    threshold: float | None = None,
 ) -> List[ContentPost]:
     """
     Retrieve similar ContentPost instances for a given query embedding,
@@ -134,7 +134,11 @@ def get_similar_for_post(
 
     # Create a boolean mask for candidates under the threshold.
     # If threshold is None, accept all candidates.
-    mask = np.ones_like(distances[0], dtype=bool) if threshold is None else (distances[0] <= threshold)
+    mask = (
+        np.ones_like(distances[0], dtype=bool)
+        if threshold is None
+        else (distances[0] <= threshold)
+    )
 
     # Get valid indices according to the mask.
     valid_positions = np.where(mask)[0]
@@ -142,7 +146,9 @@ def get_similar_for_post(
         return []
 
     # Retrieve candidate IDs in the order they were returned.
-    candidate_ids = [id_list[int(idx)] for idx in indices[0][valid_positions] if idx < len(id_list)]
+    candidate_ids = [
+        id_list[int(idx)] for idx in indices[0][valid_positions] if idx < len(id_list)
+    ]
 
     # Exclude candidates from the same user in one batch query.
     candidate_posts = list(
@@ -161,4 +167,3 @@ def get_similar_for_post(
     candidate_posts.sort(key=lambda post: distance_map.get(post.id, float("inf")))
 
     return candidate_posts[:k]
-

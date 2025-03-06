@@ -1,0 +1,11 @@
+{% for other_post_id, data in suggested_contents.items %}
+    {% if forloop.last %}
+        <div hx-get="{% url 'get-suggested-posts' %}?page={{ page }}"
+             hx-trigger="intersect once"
+             hx-swap="afterend">
+            {% include 'core/includes/content-card.html' with post=data.post similar=data.active_posts profile=data.post.user %}
+        </div>
+    {% else %}
+       {% include 'core/includes/content-card.html' with post=data.post similar=data.active_posts profile=data.post.user %}
+    {% endif %}
+{% endfor %}

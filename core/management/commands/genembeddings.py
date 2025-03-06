@@ -1,11 +1,13 @@
 import logging
 import os
+import subprocess
 import tempfile
-from typing import List, Optional
+from typing import List, Optional, BinaryIO
 
 import numpy as np
 import torch
 import librosa
+import whisper
 from PIL import Image
 from django.core.management.base import BaseCommand
 import torchvision.models as models
@@ -15,117 +17,218 @@ from core.models import ContentPost
 
 logger = logging.getLogger(__name__)
 
-# Global model and tokenizer references
-device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-text_tokenizer: Optional[AutoTokenizer] = None
-text_model: Optional[AutoModel] = None
-image_model: Optional[torch.nn.Module] = None
-image_transform: Optional[transforms.Compose] = None
+DEVICE: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def init_text_model() -> None:
+class EmbeddingProcessor:
     """
-    Initialize the text model and tokenizer if not already loaded.
+    Processes ContentPost instances to compute embeddings based on media type.
+    Supports text, image, audio, and video (via audio extraction and transcription).
     """
-    global text_tokenizer, text_model
-    if text_model is None:
-        text_tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
-        text_model = AutoModel.from_pretrained("distilbert-base-uncased")
-        text_model.to(device)
-        text_model.eval()
 
+    def __init__(self) -> None:
+        self.text_tokenizer: Optional[AutoTokenizer] = None
+        self.text_model: Optional[AutoModel] = None
+        self.image_model: Optional[torch.nn.Module] = None
+        self.image_transform: Optional[transforms.Compose] = None
 
-def compute_text_embedding(text: str) -> List[float]:
-    """
-    Compute and return the text embedding for the given text.
+    def init_text_model(self) -> None:
+        if self.text_model is None:
+            self.text_tokenizer = AutoTokenizer.from_pretrained(
+                "distilbert-base-uncased"
+            )
+            self.text_model = AutoModel.from_pretrained("distilbert-base-uncased")
+            self.text_model.to(DEVICE)
+            self.text_model.eval()
 
-    Args:
-        text: Input text to embed.
-
-    Returns:
-        A list of floats representing the text embedding.
-    """
-    init_text_model()
-    inputs = text_tokenizer(text, return_tensors="pt", truncation=True, padding=True)
-    inputs = {k: v.to(device) for k, v in inputs.items()}
-    with torch.no_grad():
-        outputs = text_model(**inputs)
-    # Mean-pool over token embeddings.
-    embedding = outputs.last_hidden_state.mean(dim=1).squeeze().cpu().numpy()
-    return embedding.tolist()
-
-
-def init_image_model() -> None:
-    """
-    Initialize the image model and its transformation pipeline if not already initialized.
-    """
-    global image_model, image_transform
-    if image_model is None:
-        base_model = models.resnet18(pretrained=True)
-        # Remove the classification head.
-        modules = list(base_model.children())[:-1]
-        image_model = torch.nn.Sequential(*modules)
-        image_model.to(device)
-        image_model.eval()
-        image_transform = transforms.Compose(
-            [
-                transforms.Resize((224, 224)),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406],
-                    std=[0.229, 0.224, 0.225],
-                ),
-            ]
+    def compute_text_embedding(self, text: str) -> List[float]:
+        self.init_text_model()
+        inputs = self.text_tokenizer(
+            text, return_tensors="pt", truncation=True, padding=True
         )
-
-
-def compute_image_embedding_from_file(file_obj) -> List[float]:
-    """
-    Compute an image embedding from a file-like object using a pre-trained CNN.
-
-    Args:
-        file_obj: A binary file-like object containing image data.
-
-    Returns:
-        A list of floats representing the image embedding.
-    """
-    init_image_model()
-    image = Image.open(file_obj).convert("RGB")
-    image_tensor = image_transform(image).unsqueeze(0).to(device)
-    with torch.no_grad():
-        embedding = image_model(image_tensor).squeeze().cpu().numpy()
-    return embedding.flatten().tolist()
-
-
-def compute_audio_embedding(audio_path: str) -> List[float]:
-    """
-    Compute an audio embedding using a mel-spectrogram based approach.
-
-    This is a placeholder implementation; in production, consider using a dedicated model (e.g., VGGish).
-
-    Args:
-        audio_path: Local file path to the audio file.
-
-    Returns:
-        A list of floats representing the audio embedding.
-    """
-    try:
-        y, sr = librosa.load(audio_path, sr=22050)
-        mel_spec = librosa.feature.melspectrogram(y=y, sr=sr)
-        # Average over the time dimension to yield a fixed-size vector.
-        embedding = np.mean(mel_spec, axis=1)
+        inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
+        with torch.no_grad():
+            outputs = self.text_model(**inputs)
+        # Mean-pool over token embeddings.
+        embedding = outputs.last_hidden_state.mean(dim=1).squeeze().cpu().numpy()
         return embedding.tolist()
-    except Exception:
-        logger.exception("Error computing audio embedding.", exc_info=True)
+
+    def init_image_model(self) -> None:
+        if self.image_model is None:
+            base_model = models.resnet18(pretrained=True)
+            # Remove the classification head.
+            modules = list(base_model.children())[:-1]
+            self.image_model = torch.nn.Sequential(*modules)
+            self.image_model.to(DEVICE)
+            self.image_model.eval()
+            self.image_transform = transforms.Compose(
+                [
+                    transforms.Resize((224, 224)),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        mean=[0.485, 0.456, 0.406],
+                        std=[0.229, 0.224, 0.225],
+                    ),
+                ]
+            )
+
+    def compute_image_embedding(self, file_obj: BinaryIO) -> List[float]:
+        self.init_image_model()
+        image = Image.open(file_obj).convert("RGB")
+        image_tensor = self.image_transform(image).unsqueeze(0).to(DEVICE)
+        with torch.no_grad():
+            embedding = self.image_model(image_tensor).squeeze().cpu().numpy()
+        return embedding.flatten().tolist()
+
+    def compute_audio_embedding(self, audio_path: str) -> List[float]:
+        try:
+            y, sr = librosa.load(audio_path, sr=22050)
+            mel_spec = librosa.feature.melspectrogram(y=y, sr=sr)
+            embedding = np.mean(mel_spec, axis=1)
+            return embedding.tolist()
+        except Exception:
+            logger.exception("Error computing audio embedding.", exc_info=True)
+            return []
+
+    def transcribe_audio(self, audio_path: str) -> str:
+        try:
+            model = whisper.load_model("base")
+            result = model.transcribe(audio_path)
+            return result.get("text", "").strip()
+        except Exception:
+            logger.exception("Error transcribing audio with Whisper.", exc_info=True)
+            return ""
+
+    def process_text(self, content: ContentPost) -> List[float]:
+        logger.info(f"Computing text embedding for ContentPost {content.id}...")
+        return self.compute_text_embedding(content.text_content)
+
+    def process_image(self, content: ContentPost) -> List[float]:
+        try:
+            with content.media_file.open("rb") as file_obj:
+                logger.info(
+                    f"Computing image embedding for ContentPost {content.id}..."
+                )
+                return self.compute_image_embedding(file_obj)
+        except Exception as e:
+            logger.error(f"Error processing image for ContentPost {content.id}: {e}")
+            return []
+
+    def process_audio(self, content: ContentPost) -> List[float]:
+        """
+        Process an audio post by attempting to transcribe the audio.
+        If transcription yields a non-empty transcript, return its text embedding;
+        otherwise, fall back to the audio embedding.
+        """
+        tmp_file_path: Optional[str] = None
+        try:
+            with content.media_file.open("rb") as file_obj:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=".mp3"
+                ) as tmp_file:
+                    tmp_file.write(file_obj.read())
+                    tmp_file_path = tmp_file.name
+
+            logger.info(f"Transcribing audio for ContentPost {content.id}...")
+            transcript = self.transcribe_audio(tmp_file_path)
+            if transcript:
+                logger.info(f"Transcription successful for ContentPost {content.id}.")
+                return self.compute_text_embedding(transcript)
+            else:
+                logger.info(
+                    f"No speech found for ContentPost {content.id}, falling back to audio embedding."
+                )
+                return self.compute_audio_embedding(tmp_file_path)
+        except Exception as e:
+            logger.error(f"Error processing audio for ContentPost {content.id}: {e}")
+            return []
+        finally:
+            if tmp_file_path and os.path.exists(tmp_file_path):
+                os.remove(tmp_file_path)
+
+    def process_video(self, content: ContentPost) -> List[float]:
+        """
+        Process a video post by extracting its audio, then attempting transcription.
+        If transcription yields text, return its text embedding; otherwise, fall back to audio embedding.
+        """
+        tmp_video_path: Optional[str] = None
+        tmp_audio_path: Optional[str] = None
+        try:
+            with content.media_file.open("rb") as file_obj:
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=".mp4"
+                ) as tmp_video_file:
+                    tmp_video_file.write(file_obj.read())
+                    tmp_video_path = tmp_video_file.name
+
+            with tempfile.NamedTemporaryFile(
+                delete=False, suffix=".mp3"
+            ) as tmp_audio_file:
+                tmp_audio_path = tmp_audio_file.name
+
+            logger.info(f"Extracting audio from video for ContentPost {content.id}...")
+            result = subprocess.run(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-i",
+                    tmp_video_path,
+                    "-vn",
+                    "-acodec",
+                    "libmp3lame",
+                    "-q:a",
+                    "2",
+                    tmp_audio_path,
+                ],
+                capture_output=True,
+            )
+            if result.returncode != 0:
+                logger.error(
+                    f"FFmpeg error for ContentPost {content.id}: {result.stderr.decode()}"
+                )
+                return []
+            logger.info(f"Transcribing video audio for ContentPost {content.id}...")
+            transcript = self.transcribe_audio(tmp_audio_path)
+            if transcript:
+                logger.info(f"Transcription successful for ContentPost {content.id}.")
+                return self.compute_text_embedding(transcript)
+            else:
+                logger.info(
+                    f"No speech found for ContentPost {content.id}, falling back to audio embedding."
+                )
+                return self.compute_audio_embedding(tmp_audio_path)
+        except Exception as e:
+            logger.error(f"Error processing video for ContentPost {content.id}: {e}")
+            return []
+        finally:
+            if tmp_audio_path and os.path.exists(tmp_audio_path):
+                os.remove(tmp_audio_path)
+            if tmp_video_path and os.path.exists(tmp_video_path):
+                os.remove(tmp_video_path)
+
+    def process_content(self, content: ContentPost) -> List[float]:
+        """
+        Process a ContentPost instance according to its media type.
+        """
+        if content.media_type == "text" and content.text_content:
+            return self.process_text(content)
+        if content.media_type in ("image", "gif") and content.media_file:
+            return self.process_image(content)
+        if content.media_type == "audio" and content.media_file:
+            return self.process_audio(content)
+        if content.media_type == "video" and content.media_file:
+            return self.process_video(content)
+
+        logger.info(
+            f"Insufficient data to compute embedding for ContentPost {content.id}."
+        )
         return []
 
 
 class Command(BaseCommand):
     """
     Generate embeddings for ContentPost items that lack an embedding.
-
-    This command supports remote storage backends (e.g., S3 via django-storages)
-    by opening files via the storage API.
+    This command supports remote storage by using the file-like API.
     """
 
     help = "Generate embeddings for ContentPost items without an existing embedding."
@@ -134,10 +237,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--content_id",
             type=int,
-            help=(
-                "Optional ContentPost ID to process. "
-                "If omitted, process all items without embeddings."
-            ),
+            help="Optional ContentPost ID to process. If omitted, process all items without embeddings.",
         )
 
     def handle(self, *args, **options) -> None:
@@ -149,8 +249,9 @@ class Command(BaseCommand):
         total_count = queryset.count()
         self.stdout.write(f"Processing {total_count} content post(s)...")
 
+        processor = EmbeddingProcessor()
         for content in queryset:
-            embedding = self._process_content(content)
+            embedding = processor.process_content(content)
             if embedding:
                 content.embedding = embedding
                 content.save(update_fields=["embedding"])
@@ -162,79 +263,7 @@ class Command(BaseCommand):
                     f"Failed to compute embedding for ContentPost {content.id}."
                 )
 
-    def _get_queryset(self, content_id: Optional[int]) -> "QuerySet[ContentPost]":
-        """
-        Retrieve ContentPost queryset filtered by content_id if provided,
-        or all posts missing embeddings otherwise.
-        """
+    def _get_queryset(self, content_id: Optional[int]):
         if content_id:
             return ContentPost.objects.filter(id=content_id, embedding__isnull=True)
         return ContentPost.objects.filter(embedding__isnull=True)
-
-    def _process_content(self, content: ContentPost) -> List[float]:
-        """
-        Process a ContentPost instance to compute its embedding.
-
-        Returns:
-            The computed embedding as a list of floats, or an empty list if processing fails.
-        """
-        if content.media_type == "text" and content.text_content:
-            self.stdout.write(
-                f"Computing text embedding for ContentPost {content.id}..."
-            )
-            return compute_text_embedding(content.text_content)
-
-        if content.media_type in ("image", "gif") and content.media_file:
-            try:
-                with content.media_file.open("rb") as file_obj:
-                    self.stdout.write(
-                        f"Computing image embedding for ContentPost {content.id}..."
-                    )
-                    return compute_image_embedding_from_file(file_obj)
-            except Exception as e:
-                self.stdout.write(
-                    f"Error processing image for ContentPost {content.id}: {e}"
-                )
-                return []
-
-        if content.media_type == "audio" and content.media_file:
-            return self._process_audio(content)
-
-        if content.media_type == "video":
-            self.stdout.write(
-                f"Skipping video embedding for ContentPost {content.id} (not implemented)."
-            )
-            return []
-
-        self.stdout.write(
-            f"Insufficient data to compute embedding for ContentPost {content.id}."
-        )
-        return []
-
-    def _process_audio(self, content: ContentPost) -> List[float] | None:
-        """
-        Process an audio ContentPost instance by downloading the file to a temporary location.
-
-        Returns:
-            The computed audio embedding as a list of floats, or an empty list if processing fails.
-        """
-        tmp_file_path: Optional[str] = None
-        try:
-            with content.media_file.open("rb") as file_obj:
-                with tempfile.NamedTemporaryFile(
-                    delete=False, suffix=".mp3"
-                ) as tmp_file:
-                    tmp_file.write(file_obj.read())
-                    tmp_file_path = tmp_file.name
-            self.stdout.write(
-                f"Computing audio embedding for ContentPost {content.id}..."
-            )
-            return compute_audio_embedding(tmp_file_path)
-        except Exception as e:
-            self.stdout.write(
-                f"Error processing audio for ContentPost {content.id}: {e}"
-            )
-            return []
-        finally:
-            if tmp_file_path and os.path.exists(tmp_file_path):
-                os.remove(tmp_file_path)
