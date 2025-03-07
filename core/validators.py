@@ -29,6 +29,7 @@ def validate_media_file(file):
         # Audio
         "audio/mpeg",
         "audio/wav",
+        "audio/x-wav",
         "audio/ogg",
     ]
 
