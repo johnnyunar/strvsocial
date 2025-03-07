@@ -32,12 +32,11 @@ def get_faiss_indexes_from_cache(
     if media_types is None:
         media_types = ["text", "image", "video", "gif", "audio"]
 
-    all_indexes = {}
+    all_indexes: Dict[str, Tuple[faiss.IndexFlatL2, List[int]]] = {}
     for media_type in media_types:
         cached = cache.get(f"{cache_key}{media_type}")
         if cached:
             # Rebuild the indexes from the serialized data in cache.
-            indexes: Dict[str, Tuple[faiss.IndexFlatL2, List[int]]] = {}
             for media_type, (serialized_index, id_list) in cached.items():
                 index = faiss.deserialize_index(serialized_index)
                 all_indexes[media_type] = (index, id_list)
