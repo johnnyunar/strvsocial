@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "users",
     "core",
     # 3rd party apps
+    "storages",
     "tailwind",
     "widget_tweaks",
     "crispy_forms",
