@@ -3,6 +3,7 @@
 
 Read the docs: https://www.dropbox.com/scl/fi/c3uw71qq0zcun7tl415p9/STRV.social.pdf?rlkey=gu7sxkbusnrssf1vltbx1jh1f&dl=0
 
+View the demo: https://strv.social/
 
 ## Overview
 This repository contains a prototype solution designed to find and present content similar to user uploads for a social
