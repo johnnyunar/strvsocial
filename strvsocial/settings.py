@@ -180,7 +180,7 @@ STORAGES = {
 
 if not DEBUG:
     STORAGES["default"] = {
-        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {
             "access_key": os.environ.get("S3_ACCESS_KEY_ID"),
             "secret_key": os.environ.get("S3_SECRET_ACCESS_KEY"),
