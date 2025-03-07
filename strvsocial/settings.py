@@ -26,6 +26,8 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+SECURE_SSL_REDIRECT = not DEBUG
+
 AUTH_USER_MODEL = "users.SocialUser"
 
 SITE_ID = 1
