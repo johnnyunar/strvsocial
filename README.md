@@ -1,6 +1,9 @@
 ![Logo](core/static/core/img/strvsocial-logo.png)
 
 
+Read the docs: https://www.dropbox.com/scl/fi/c3uw71qq0zcun7tl415p9/STRV.social.pdf?rlkey=gu7sxkbusnrssf1vltbx1jh1f&dl=0
+
+
 ## Overview
 This repository contains a prototype solution designed to find and present content similar to user uploads for a social
 network inspired by Instagram and Pinterest. The prototype efficiently manages multiple media types and large amounts of content items using embeddings
