@@ -32,7 +32,7 @@ def generate_random_filename(instance, filename: str, subdir: str = "other") -> 
         filename: name of the file to be uploaded
         subdir: subdirectory to store the file
 
-    Returns: enerated path for the file
+    Returns: generated path for the file
 
     """
     ext: str = pathlib.Path(filename).suffix
