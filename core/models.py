@@ -107,7 +107,9 @@ class ContentPost(BaseModel):
             faiss_indexes = build_faiss_indexes_by_media(
                 force_rebuild=True, media_types=[self.media_type]
             )
-            index, id_list = faiss_indexes[self.media_type]
+            index, id_list = faiss_indexes.get(self.media_type)
+            if not index:
+                return []
 
         if not query_user_id:
             query_user_id = self.user.id
