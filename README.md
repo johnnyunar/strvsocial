@@ -32,7 +32,7 @@ content similarity search leveraging modern AI techniques.
 
 ## Technologies Used
 
-- **Backend:** Django, PostgreSQL
+- **Backend:** Django, PostgreSQL, Redis
 - **AI & ML Libraries:** PyTorch, Transformers, torchvision, librosa
 - **Frontend:** HTMX, Tailwind CSS, Font Awesome
 - **Deployment:** Docker, Docker Compose
@@ -114,8 +114,7 @@ Future enhancements:
 
 ## Next Steps
 
-- Extend embedding generation support for video content.
-- Integrate a vector search engine for production-grade scalability.
+- Integrate a vector search engine as a microservice for production-grade scalability.
 - Build a recommendation system based on user interactions.
 
 [⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
