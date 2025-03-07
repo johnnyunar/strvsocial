@@ -67,8 +67,8 @@ class ContentPost(BaseModel):
     embedding = models.JSONField(_("Embedding"), blank=True, null=True)
 
     class Meta:
-        verbose_name = _("Content")
-        verbose_name_plural = _("Content")
+        verbose_name = _("Content Post")
+        verbose_name_plural = _("Content Posts")
         ordering = ["-created_at"]
         get_latest_by = "updated_at"
 
