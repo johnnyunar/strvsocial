@@ -9,11 +9,11 @@
     {% endcomment %}
     {% if suggested_content %}
         {% for other_post_id, data in suggested_content.items %}
-            {% include 'core/includes/content-card.html' with post=data.post similar=data.active_posts profile=data.post.user %}
+            {% include 'core/includes/content-card.html' with card_class="md:w-500" post=data.post similar=data.active_posts profile=data.post.user %}
         {% endfor %}
     {% else %}
         {% for post in content %}
-            {% include 'core/includes/content-card.html' with profile=post.user %}
+            {% include 'core/includes/content-card.html' with card_class="md:w-500" profile=post.user %}
         {% endfor %}
     {% endif %}
 </div>

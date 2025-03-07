@@ -61,6 +61,7 @@ module.exports = {
         "btn",
         "btn-neutral",
         "mt-4",
+        "md:w-500"
     ],
     theme: {
         extend: {
