@@ -1,3 +1,5 @@
+<a name="readme-top"></a>
+
 ![Logo](core/static/core/img/strvsocial-logo.png)
 
 
@@ -10,7 +12,7 @@ This repository contains a prototype solution designed to find and present conte
 network inspired by Instagram and Pinterest. The prototype efficiently manages multiple media types and large amounts of content items using embeddings
 to enable rapid similarity searches.
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 ---
 
@@ -19,7 +21,7 @@ The main goal is to build a highly scalable and efficient solution to help users
 and similar content from potentially millions of items. This prototype demonstrates the feasibility and efficiency of
 content similarity search leveraging modern AI techniques.
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 ## Features
 
@@ -28,7 +30,7 @@ content similarity search leveraging modern AI techniques.
 - **Scalable:** Designed for scalability, capable of handling millions of content items.
 - **Integration Ready:** Easily deployable via Docker containers.
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 ## Technologies Used
 
@@ -37,7 +39,7 @@ content similarity search leveraging modern AI techniques.
 - **Frontend:** HTMX, Tailwind CSS, Font Awesome
 - **Deployment:** Docker, Docker Compose
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 ## How It Works
 
@@ -48,7 +50,7 @@ The application generates embeddings using pre-trained AI models:
 
 Embeddings enable rapid similarity searches using vector databases or similarity metrics (e.g., cosine similarity) optimized for scalability and speed.
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 ## Getting Started
 
@@ -73,7 +75,7 @@ docker-compose up
 
 The server will run locally at `http://localhost:8000`
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 ## Usage
 
@@ -92,7 +94,7 @@ docker-compose run django python manage.py genembeddings --content_id=123
 
 This is done periodically in production to keep embeddings up-to-date.
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 ## Deployment
 
@@ -100,7 +102,7 @@ This is done periodically in production to keep embeddings up-to-date.
 - Use vector databases (e.g., FAISS, Pinecone) for efficient similarity searches in production.
 - Employ Kubernetes for scaling horizontally, with autoscaling workers for embedding tasks.
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 ## Turning into a Recommendation Engine
 
@@ -110,20 +112,20 @@ Future enhancements:
 - Integrate collaborative filtering alongside content-based filtering.
 - Leverage user engagement data to fine-tune recommendations.
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 ## Next Steps
 
 - Integrate a vector search engine as a microservice for production-grade scalability.
 - Build a recommendation system based on user interactions.
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 
 ## License
 
 This project is licensed under the MIT License.
 
-[⬆️ Back to Top](#strv-social-network-content-similarity-prototype)
+[⬆️ Back to Top](#readme-top)
 
 
