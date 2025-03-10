@@ -37,7 +37,7 @@ content similarity search leveraging modern AI techniques.
 - **Backend:** Django, PostgreSQL, Redis
 - **AI & ML Libraries:** PyTorch, Transformers, torchvision, librosa
 - **Frontend:** HTMX, Tailwind CSS, Font Awesome
-- **Deployment:** Docker, Docker Compose
+- **Deployment:** Docker, Docker Compose, Dokku
 
 [⬆️ Back to Top](#readme-top)
 
