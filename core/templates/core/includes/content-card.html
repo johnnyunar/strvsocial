@@ -1,21 +1,20 @@
 {% load i18n %}
 <a href="{{ post.get_absolute_url }}">
     <div class="card bg-base-200 w-full max-w-[500px] shadow-sm mb-14 hover:scale-105 transition-all {{ card_class }}">
-        {% if post.media_file %}
             <figure class="max-h-44 {{ figure_class }}">
-                {% if post.media_type == "image" or post.media_type == "gif" %}
+                {% if post.media_file and post.media_type == "image" or post.media_type == "gif" %}
                     <img
                       src="{{ post.media_file.url }}"
                       class="w-full h-full object-cover"
                       alt="Media Content"/>
-                {% elif post.media_type == "audio" %}
+                {% elif post.media_file and post.media_type == "audio" %}
                     <div class="p-8">
                         <audio controls>
                             <source src="{{ post.media_file.url }}" type="audio/mpeg">
                             Your browser does not support the audio element.
                         </audio>
                     </div>
-                {% elif post.media_type == "video" %}
+                {% elif post.media_file and post.media_type == "video" %}
                     <video controls>
                         <source src="{{ post.media_file.url }}" type="video/mp4">
                         Your browser does not support the video element.
@@ -26,7 +25,6 @@
                     </div>
                 {% endif %}
             </figure>
-        {% endif %}
         <div class="card-body">
             <h2 class="card-title mb-4">
                 <img class="size-7 rounded-box" src="{{ profile.get_avatar_url }}"/>
