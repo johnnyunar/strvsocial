@@ -83,7 +83,7 @@ The server will run locally at `http://localhost:8000`
 Generate embeddings for all items lacking them:
 
 ```bash
-docker-compose run --rm django web manage.py genembeddings
+docker-compose run --rm web python manage.py genembeddings
 ```
 
 Generate embeddings for specific content ID:
